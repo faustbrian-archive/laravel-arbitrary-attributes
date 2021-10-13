@@ -30,7 +30,7 @@ class ArbitraryAttributes
     {
         $this->collection->put($key, $value);
 
-        $this->commits[] = ['action' => 'set', 'key' => $key, 'value' => $value];
+        $this->commits[] = Commit::set($key, $value);
 
         return $this;
     }
@@ -42,7 +42,7 @@ class ArbitraryAttributes
         $this->collection->forget($keys);
 
         foreach ($keys as $key) {
-            $this->commits[] = ['action' => 'forget', 'key' => $key];
+            $this->commits[] = Commit::forget($key);
         }
 
         return $this;
@@ -63,17 +63,17 @@ class ArbitraryAttributes
         $rows = [];
 
         foreach ($this->commits as $commit) {
-            if ($commit['action'] === 'set') {
+            if ($commit->action() === 'set') {
                 $rows[] = [
                     'model_id'   => $this->model->id,
                     'model_type' => $this->model::class,
-                    'key'        => $commit['key'],
-                    'value'      => $commit['value'],
+                    'key'        => $commit->key(),
+                    'value'      => $commit->value(),
                 ];
             }
 
-            if ($commit['action'] === 'forget') {
-                $this->model->arbitraryAttributes()->where($commit['key'])->delete();
+            if ($commit->action() === 'forget') {
+                $this->model->arbitraryAttributes()->where($commit->key())->delete();
             }
         }
 
